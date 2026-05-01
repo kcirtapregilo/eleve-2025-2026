@@ -1,51 +1,52 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="utf-8">
+    <!-- Chargement des bibliothèques nécessaires 📦 -->
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/AR.js/3.4.5/aframe/build/aframe-ar.js"></script>
-    <style>
-        #ui { position: fixed; top: 10px; left: 10px; z-index: 1000; background: rgba(255,255,255,0.7); padding: 10px; border-radius: 5px; font-family: sans-serif; pointer-events: none; }
-    </style>
-</head>
-<body style="margin: 0; overflow: hidden;">
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+  </head>
+  <body style="margin: 0px; overflow: hidden;">
+    <!-- Configuration de la scène AR 🎥 -->
+    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
+      
+      <!-- Conteneur où le script va injecter les marqueurs 🏗️ -->
+      <a-entity id="vignettes-eleves"></a-entity>
 
-    <div id="ui">
-        <b>Mode Multi-Détection (1-200)</b><br>
-        Pointez la caméra vers un dessin.
-    </div>
-
-    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;">
-        
-        <a-entity camera></a-entity>
-
-        <a-entity id="liste-marqueurs"></a-entity>
-
+      <a-entity camera></a-entity>
     </a-scene>
 
     <script>
-        const scene = document.getElementById('liste-marqueurs');
-        const totalEleves = 200;
+      const conteneur = document.querySelector('#vignettes-eleves');
 
-        for (let i = 1; i <= totalEleves; i++) {
-            // 1. Création de l'entité marqueur
-            const marker = document.createElement('a-marker');
-            marker.setAttribute('type', 'pattern');
-            marker.setAttribute('url', `data/eleve_${i}.patt`);
-            marker.setAttribute('id', `marker-${i}`);
+      // 1. On récupère la liste des élèves actifs depuis le fichier JSON 📂
+      fetch('docs/eleves.json')
+        .then(reponse => reponse.json())
+        .then(donnees => {
+          const liste = donnees.eleves_actifs;
 
-            // 2. Création de l'image associée
+          // 2. On boucle sur chaque numéro d'élève présent dans la liste 🔄
+          liste.forEach(id => {
+            // Création du marqueur .patt
+            const marqueur = document.createElement('a-marker');
+            marqueur.setAttribute('type', 'pattern');
+            marqueur.setAttribute('url', `docs/eleve_${id}.patt`);
+
+            // Création de l'image .png associée
             const image = document.createElement('a-image');
-            image.setAttribute('src', `data/image_${i}.png`);
-            image.setAttribute('rotation', '-90 0 0');
-            image.setAttribute('width', '2');
-            image.setAttribute('height', '2');
-            image.setAttribute('position', '0 0 0');
+            image.setAttribute('src', `docs/image_${id}.png`);
+            image.setAttribute('rotation', '-90 0 0'); // À plat sur le marqueur
+            image.setAttribute('width', '1');
+            image.setAttribute('height', '1');
 
-            // 3. On emboîte le tout
-            marker.appendChild(image);
-            scene.appendChild(marker);
-        }
+            // On assemble et on ajoute à la scène 🧩
+            marqueur.appendChild(image);
+            conteneur.appendChild(marqueur);
+          });
+        })
+        .catch(erreur => {
+          console.error("Problème pour lire le fichier JSON :", erreur);
+        });
     </script>
-</body>
+  </body>
 </html>
